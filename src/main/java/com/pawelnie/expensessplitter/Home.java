@@ -27,7 +27,7 @@ public class Home extends AppLayout {
 
             VerticalLayout verticalLayout = new VerticalLayout();
             TextField textField = new TextField();
-            textField.setPlaceholder("occasion name");
+            textField.setPlaceholder("Occasion name");
             Button acceptButton = new Button("Ok");
 
             verticalLayout.add(textField);
