@@ -6,7 +6,6 @@ import com.pawelnie.expensessplitter.calc.Person;
 import com.pawelnie.expensessplitter.dao.ExpenseRepo;
 import com.pawelnie.expensessplitter.dao.OccasionRepo;
 import com.pawelnie.expensessplitter.dao.PersonRepo;
-import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.HasValue;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.applayout.AppLayout;
@@ -14,20 +13,18 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Label;
+import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.event.EventListener;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
 
 @Route
 public class Home extends AppLayout {
@@ -40,7 +37,7 @@ public class Home extends AppLayout {
 
     private Grid<Occasion> occasionsGrid = new Grid<>();
     List<Occasion> occasionsList = new ArrayList<>();
-    private Occasion chosenOccasion = null;
+    private Occasion selectedOccasion = null;
 
     @Autowired
     public Home(ExpenseRepo expenseRepo, OccasionRepo occasionRepo, PersonRepo personRepo){
@@ -97,14 +94,6 @@ public class Home extends AppLayout {
 
     private void configureOccasionsGrid(){
         populateOccasionsList();
-//        final AtomicReference<Occasion> atomicChosenOccasion = new AtomicReference<>();
-//        atomicChosenOccasion.set(null);
-
-        occasionsGrid.asSingleSelect().addValueChangeListener(event -> {
-//            String message = String.format("Selection changed from %s to %s",
-//                    event.getOldValue().getName(), event.getValue().getName());
-//            atomicChosenOccasion.set(event.getValue());
-        });
 
         occasionsGrid.setItems(occasionsList);
         occasionsGrid.setSelectionMode(Grid.SelectionMode.SINGLE);
@@ -114,12 +103,47 @@ public class Home extends AppLayout {
 
     private void selectOccasionFromGrid(HasValue.ValueChangeEvent event){
         event.getValue();
-
     }
+
     public void addExpense(String name){
         Expense expense = new Expense();
         expense.setName(name);
         expenseRepo.save(expense);
+    }
+    public Button getPrepareExpenseButton(){
+        final Button button = new Button("Add new expense", event ->{
+            Dialog dialog = new Dialog();
+            dialog.add(new Label("New expense"));
+
+            VerticalLayout verticalLayout = new VerticalLayout();
+            HorizontalLayout headerHorizontalLayout = new HorizontalLayout();
+            HorizontalLayout participantHorizontalLayout = new HorizontalLayout();
+
+            TextField nameTextField = new TextField();
+            nameTextField.setPlaceholder("Expense name");
+
+            TextField amountTextField = new TextField();
+            amountTextField.setPlaceholder("Expense amount");
+
+            Button acceptButton = new Button("Ok", acceptButtonEvent -> {
+//                addOccasion(textField.getValue());
+//                occasionsGrid.getDataProvider().refreshAll();
+                dialog.close();
+            });
+
+            headerHorizontalLayout.add(nameTextField);
+            headerHorizontalLayout.add(amountTextField);
+            headerHorizontalLayout.add(acceptButton);
+
+            verticalLayout.add(headerHorizontalLayout);
+            verticalLayout.add(participantHorizontalLayout);
+
+            dialog.add(verticalLayout);
+            dialog.setHeight("150px");
+            dialog.setWidth("600px");
+            dialog.open();
+        });
+        return button;
     }
     public void addOccasion(String name){
         Occasion occasion = new Occasion();
@@ -131,14 +155,21 @@ public class Home extends AppLayout {
         Person person = new Person();
         person.setName(name);
 
-        Set<Occasion> chosenOccasionsSet = occasionsGrid.getSelectedItems();
-        Iterator<Occasion> iterator = chosenOccasionsSet.iterator();
+        Set<Occasion> selectedOccasionSet = occasionsGrid.getSelectedItems();
+        Iterator<Occasion> iterator = selectedOccasionSet.iterator();
+        Notification notification;
 
         if (iterator.hasNext()) {
-            chosenOccasion = iterator.next();
-            person.setOccasion(chosenOccasion);
+            selectedOccasion = iterator.next();
+            person.setOccasion(selectedOccasion);
+            personRepo.save(person);
+            notification = Notification.show(
+                    "Person "+person.getName()+" added to "+selectedOccasion.getName());
         }
-        personRepo.save(person);
+        else{
+            notification = Notification.show(
+                    "Person was not added beacause no occasion was selected");
+        }
     }
     private Button getPreparePersonButton(){
         final Button button = new Button("Add new person", event ->{
@@ -164,12 +195,9 @@ public class Home extends AppLayout {
             dialog.setHeight("150px");
             dialog.setWidth("400px");
             dialog.open();
-        });
-        return button;
-    }
 
-    private Button getPrepareExpenseButton(){
-        Button button = new Button("Add new expense");
+            textField.focus();
+        });
         return button;
     }
 }

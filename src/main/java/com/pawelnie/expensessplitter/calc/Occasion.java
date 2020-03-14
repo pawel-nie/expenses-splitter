@@ -18,7 +18,7 @@ public class Occasion {
             mappedBy = "occasion")
     private List<Person> personsList;
 
-    public Occasion(){};
+    public Occasion(){}
 
     public Occasion(Long id, String name){
         this.id = id;
