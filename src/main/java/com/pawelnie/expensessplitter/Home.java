@@ -46,11 +46,15 @@ public class Home extends AppLayout {
         this.personRepo = personRepo;
         HorizontalLayout horizontalLayout = new HorizontalLayout();
         VerticalLayout occasionVerticalLayout = new VerticalLayout();
+        HorizontalLayout occasionsOperationsHorizontalLayout =
+                new HorizontalLayout();
         VerticalLayout personsAndExpensesVerticalLayout = new VerticalLayout();
 
         configureOccasionsGrid();
+        occasionsOperationsHorizontalLayout.add(getPrepareOccasionButton());
+        occasionsOperationsHorizontalLayout.add(getDeleteOccasionButton());
         occasionVerticalLayout.add(occasionsGrid);
-        occasionVerticalLayout.add(getPrepareOccasionButton());
+        occasionVerticalLayout.add(occasionsOperationsHorizontalLayout);
 
         personsAndExpensesVerticalLayout.add(getPreparePersonButton());
         personsAndExpensesVerticalLayout.add(getPrepareExpenseButton());
@@ -87,7 +91,28 @@ public class Home extends AppLayout {
         });
         return button;
     }
+    private Button getDeleteOccasionButton(){
+        final Button button = new Button("Delete occasion", buttonEvent -> {
 
+            Set<Occasion> selectedOccasionSet = occasionsGrid.getSelectedItems();
+            Iterator<Occasion> iterator = selectedOccasionSet.iterator();
+            Notification notification;
+
+            if (iterator.hasNext()) {
+                selectedOccasion = iterator.next();
+                notification = Notification.show(
+                        "Occasion "+selectedOccasion.getName()+" deleted");
+            }
+            else{
+                notification = Notification.show(
+                        "No occasion was deleted");
+            }
+
+            deleteOccasion(selectedOccasion.getId());
+            occasionsGrid.getDataProvider().refreshAll();
+        });
+        return button;
+    }
     private void populateOccasionsList(){
         occasionsList = (ArrayList<Occasion>)occasionRepo.findAll();
     }
@@ -150,6 +175,17 @@ public class Home extends AppLayout {
         occasion.setName(name);
         occasionsList.add(occasion);
         occasionRepo.save(occasion);
+    }
+    public void deleteOccasion(Long id){
+
+        Iterator<Occasion> iter = occasionsList.iterator();
+        while(iter.hasNext()){
+            Occasion o = iter.next();
+            if (o.getId() == id){
+                iter.remove();
+            }
+        }
+        occasionRepo.deleteById(id);
     }
     public void addPerson(String name){
         Person person = new Person();
