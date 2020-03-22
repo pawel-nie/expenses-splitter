@@ -59,7 +59,7 @@ public class Home extends AppLayout {
         occasionVerticalLayout.add(occasionsGrid);
         occasionVerticalLayout.add(occasionsOperationsHorizontalLayout);
 
-        personButton.configPersonButton(personRepo);
+        personButton.configPersonButton(occasionsGrid, personRepo);
         personsAndExpensesVerticalLayout.add(personButton.getPreparePersonButton());
         personsAndExpensesVerticalLayout.add(getPrepareExpenseButton());
 
