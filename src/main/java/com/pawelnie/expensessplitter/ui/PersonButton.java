@@ -26,6 +26,22 @@ public class PersonButton {
     public PersonButton(){
     }
 
+    public PersonRepo getPersonRepo() {
+        return personRepo;
+    }
+
+    public void setPersonRepo(PersonRepo personRepo) {
+        this.personRepo = personRepo;
+    }
+
+    public Grid<Occasion> getOccasionsGrid() {
+        return occasionsGrid;
+    }
+
+    public void setOccasionsGrid(Grid<Occasion> occasionsGrid) {
+        this.occasionsGrid = occasionsGrid;
+    }
+
     private void addPerson(String name){
         Person person = new Person();
         person.setName(name);
@@ -48,8 +64,8 @@ public class PersonButton {
     }
 
     void configPersonButton(Grid<Occasion> occasionsGrid, PersonRepo personRepo){
-        this.occasionsGrid = occasionsGrid;
-        this.personRepo = personRepo;
+        setOccasionsGrid(occasionsGrid);
+        setPersonRepo(personRepo);
     }
 
     Button getPreparePersonButton(){
@@ -63,6 +79,7 @@ public class PersonButton {
             textField.setPlaceholder("Person name");
 
             Button acceptButton = new Button("Ok", acceptButtonEvent ->{
+                addPerson(textField.getValue());
                 occasionsGrid.getDataProvider().refreshAll();
                 dialog.close();
             });
