@@ -1,4 +1,4 @@
-package com.pawelnie.expensessplitter;
+package com.pawelnie.expensessplitter.ui;
 
 import com.pawelnie.expensessplitter.calc.Expense;
 import com.pawelnie.expensessplitter.calc.Occasion;
@@ -35,15 +35,18 @@ public class Home extends AppLayout {
     private TextArea textArea = new TextArea("Saved occasions");
     private Grid<Expense> expensesGrid = new Grid<>();
 
-    private Grid<Occasion> occasionsGrid = new Grid<>();
+    Grid<Occasion> occasionsGrid = new Grid<>();
     List<Occasion> occasionsList = new ArrayList<>();
     private Occasion selectedOccasion = null;
 
+    private PersonButton personButton;
+
     @Autowired
-    public Home(ExpenseRepo expenseRepo, OccasionRepo occasionRepo, PersonRepo personRepo){
+    public Home(ExpenseRepo expenseRepo, OccasionRepo occasionRepo, PersonRepo personRepo, PersonButton personButton){
         this.expenseRepo = expenseRepo;
         this.occasionRepo = occasionRepo;
-        this.personRepo = personRepo;
+        this.personButton = personButton;
+
         HorizontalLayout horizontalLayout = new HorizontalLayout();
         VerticalLayout occasionVerticalLayout = new VerticalLayout();
         HorizontalLayout occasionsOperationsHorizontalLayout =
@@ -56,7 +59,8 @@ public class Home extends AppLayout {
         occasionVerticalLayout.add(occasionsGrid);
         occasionVerticalLayout.add(occasionsOperationsHorizontalLayout);
 
-        personsAndExpensesVerticalLayout.add(getPreparePersonButton());
+        personButton.configPersonButton(personRepo);
+        personsAndExpensesVerticalLayout.add(personButton.getPreparePersonButton());
         personsAndExpensesVerticalLayout.add(getPrepareExpenseButton());
 
         horizontalLayout.add(occasionVerticalLayout);
@@ -186,54 +190,5 @@ public class Home extends AppLayout {
             }
         }
         occasionRepo.deleteById(id);
-    }
-    public void addPerson(String name){
-        Person person = new Person();
-        person.setName(name);
-
-        Set<Occasion> selectedOccasionSet = occasionsGrid.getSelectedItems();
-        Iterator<Occasion> iterator = selectedOccasionSet.iterator();
-        Notification notification;
-
-        if (iterator.hasNext()) {
-            selectedOccasion = iterator.next();
-            person.setOccasion(selectedOccasion);
-            personRepo.save(person);
-            notification = Notification.show(
-                    "Person "+person.getName()+" added to "+selectedOccasion.getName());
-        }
-        else{
-            notification = Notification.show(
-                    "Person was not added beacause no occasion was selected");
-        }
-    }
-    private Button getPreparePersonButton(){
-        final Button button = new Button("Add new person", event ->{
-            Dialog dialog = new Dialog();
-            dialog.add(new Label("New person"));
-
-            VerticalLayout verticalLayout = new VerticalLayout();
-
-            TextField textField = new TextField();
-            textField.setPlaceholder("Person name");
-
-            Button acceptButton = new Button("Ok", acceptButtonEvent ->{
-                addPerson(textField.getValue());
-//                occasionsGrid.getDataProvider().refreshAll();
-                dialog.close();
-            });
-            acceptButton.addClickShortcut(Key.ENTER);
-
-            verticalLayout.add(textField);
-            verticalLayout.add(acceptButton);
-
-            dialog.add(verticalLayout);
-            dialog.setHeight("150px");
-            dialog.setWidth("400px");
-            dialog.open();
-
-            textField.focus();
-        });
-        return button;
     }
 }
