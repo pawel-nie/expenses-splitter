@@ -39,14 +39,16 @@ public class Home extends AppLayout {
 
     private PersonButton personButton;
     private OccasionUI occasionUI;
+    private ExpenseUI expenseUI;
 
     @Autowired
     public Home(ExpenseRepo expenseRepo, OccasionRepo occasionRepo, PersonRepo personRepo,
-                PersonButton personButton, OccasionUI occasionUI){
+                PersonButton personButton, OccasionUI occasionUI, ExpenseUI expenseUI){
         this.expenseRepo = expenseRepo;
         this.occasionRepo = occasionRepo;
         this.personButton = personButton;
         this.occasionUI = occasionUI;
+        this.expenseUI = expenseUI;
 
         HorizontalLayout horizontalLayout = new HorizontalLayout();
         VerticalLayout occasionVerticalLayout = new VerticalLayout();
@@ -61,53 +63,14 @@ public class Home extends AppLayout {
         occasionVerticalLayout.add(occasionsGrid);
         occasionVerticalLayout.add(occasionsOperationsHorizontalLayout);
 
+        expenseUI.configure(expenseRepo);
         personButton.configure(occasionsGrid, personRepo);
         personsAndExpensesVerticalLayout.add(personButton.getPreparePersonButton());
-        personsAndExpensesVerticalLayout.add(getPrepareExpenseButton());
+        personsAndExpensesVerticalLayout.add(expenseUI.getPrepareExpenseButton());
 
         horizontalLayout.add(occasionVerticalLayout);
         horizontalLayout.add(personsAndExpensesVerticalLayout);
         setContent(horizontalLayout);
     }
 
-    public void addExpense(String name){
-        Expense expense = new Expense();
-        expense.setName(name);
-        expenseRepo.save(expense);
-    }
-    public Button getPrepareExpenseButton(){
-        final Button button = new Button("Add new expense", event ->{
-            Dialog dialog = new Dialog();
-            dialog.add(new Label("New expense"));
-
-            VerticalLayout verticalLayout = new VerticalLayout();
-            HorizontalLayout headerHorizontalLayout = new HorizontalLayout();
-            HorizontalLayout participantHorizontalLayout = new HorizontalLayout();
-
-            TextField nameTextField = new TextField();
-            nameTextField.setPlaceholder("Expense name");
-
-            TextField amountTextField = new TextField();
-            amountTextField.setPlaceholder("Expense amount");
-
-            Button acceptButton = new Button("Ok", acceptButtonEvent -> {
-//                addOccasion(textField.getValue());
-//                occasionsGrid.getDataProvider().refreshAll();
-                dialog.close();
-            });
-
-            headerHorizontalLayout.add(nameTextField);
-            headerHorizontalLayout.add(amountTextField);
-            headerHorizontalLayout.add(acceptButton);
-
-            verticalLayout.add(headerHorizontalLayout);
-            verticalLayout.add(participantHorizontalLayout);
-
-            dialog.add(verticalLayout);
-            dialog.setHeight("150px");
-            dialog.setWidth("600px");
-            dialog.open();
-        });
-        return button;
-    }
 }
