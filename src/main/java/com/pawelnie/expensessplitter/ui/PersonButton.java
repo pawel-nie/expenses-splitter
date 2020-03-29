@@ -63,7 +63,7 @@ public class PersonButton {
         }
     }
 
-    void configPersonButton(Grid<Occasion> occasionsGrid, PersonRepo personRepo){
+    void configure(Grid<Occasion> occasionsGrid, PersonRepo personRepo){
         setOccasionsGrid(occasionsGrid);
         setPersonRepo(personRepo);
     }

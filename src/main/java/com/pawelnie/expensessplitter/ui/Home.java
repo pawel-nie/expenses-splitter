@@ -36,16 +36,17 @@ public class Home extends AppLayout {
     private Grid<Expense> expensesGrid = new Grid<>();
 
     Grid<Occasion> occasionsGrid = new Grid<>();
-    List<Occasion> occasionsList = new ArrayList<>();
-    private Occasion selectedOccasion = null;
 
     private PersonButton personButton;
+    private OccasionUI occasionUI;
 
     @Autowired
-    public Home(ExpenseRepo expenseRepo, OccasionRepo occasionRepo, PersonRepo personRepo, PersonButton personButton){
+    public Home(ExpenseRepo expenseRepo, OccasionRepo occasionRepo, PersonRepo personRepo,
+                PersonButton personButton, OccasionUI occasionUI){
         this.expenseRepo = expenseRepo;
         this.occasionRepo = occasionRepo;
         this.personButton = personButton;
+        this.occasionUI = occasionUI;
 
         HorizontalLayout horizontalLayout = new HorizontalLayout();
         VerticalLayout occasionVerticalLayout = new VerticalLayout();
@@ -53,85 +54,20 @@ public class Home extends AppLayout {
                 new HorizontalLayout();
         VerticalLayout personsAndExpensesVerticalLayout = new VerticalLayout();
 
-        configureOccasionsGrid();
-        occasionsOperationsHorizontalLayout.add(getPrepareOccasionButton());
-        occasionsOperationsHorizontalLayout.add(getDeleteOccasionButton());
+        occasionUI.configure(occasionsGrid, occasionRepo);
+        occasionUI.configureOccasionsGrid();
+        occasionsOperationsHorizontalLayout.add(occasionUI.getPrepareOccasionButton());
+        occasionsOperationsHorizontalLayout.add(occasionUI.getDeleteOccasionButton());
         occasionVerticalLayout.add(occasionsGrid);
         occasionVerticalLayout.add(occasionsOperationsHorizontalLayout);
 
-        personButton.configPersonButton(occasionsGrid, personRepo);
+        personButton.configure(occasionsGrid, personRepo);
         personsAndExpensesVerticalLayout.add(personButton.getPreparePersonButton());
         personsAndExpensesVerticalLayout.add(getPrepareExpenseButton());
 
         horizontalLayout.add(occasionVerticalLayout);
         horizontalLayout.add(personsAndExpensesVerticalLayout);
         setContent(horizontalLayout);
-    }
-
-    private Button getPrepareOccasionButton(){
-        final Button button = new Button("Add new occasion", buttonEvent -> {
-            Dialog dialog = new Dialog();
-            dialog.add(new Label("New occasion"));
-
-            VerticalLayout verticalLayout = new VerticalLayout();
-            TextField textField = new TextField();
-            textField.setPlaceholder("Occasion name");
-            Button acceptButton = new Button("Ok", acceptButtonEvent ->     {
-                addOccasion(textField.getValue());
-                occasionsGrid.getDataProvider().refreshAll();
-                dialog.close();
-            });
-            acceptButton.addClickShortcut(Key.ENTER);
-
-            verticalLayout.add(textField);
-            verticalLayout.add(acceptButton);
-
-            dialog.add(verticalLayout);
-            dialog.setHeight("150px");
-            dialog.setWidth("400px");
-            dialog.open();
-
-            textField.focus();
-        });
-        return button;
-    }
-    private Button getDeleteOccasionButton(){
-        final Button button = new Button("Delete occasion", buttonEvent -> {
-
-            Set<Occasion> selectedOccasionSet = occasionsGrid.getSelectedItems();
-            Iterator<Occasion> iterator = selectedOccasionSet.iterator();
-            Notification notification;
-
-            if (iterator.hasNext()) {
-                selectedOccasion = iterator.next();
-                notification = Notification.show(
-                        "Occasion "+selectedOccasion.getName()+" deleted");
-            }
-            else{
-                notification = Notification.show(
-                        "No occasion was deleted");
-            }
-
-            deleteOccasion(selectedOccasion.getId());
-            occasionsGrid.getDataProvider().refreshAll();
-        });
-        return button;
-    }
-    private void populateOccasionsList(){
-        occasionsList = (ArrayList<Occasion>)occasionRepo.findAll();
-    }
-
-    private void configureOccasionsGrid(){
-        populateOccasionsList();
-
-        occasionsGrid.setItems(occasionsList);
-        occasionsGrid.setSelectionMode(Grid.SelectionMode.SINGLE);
-        occasionsGrid.addColumn(Occasion::getId).setHeader("Nr");
-        occasionsGrid.addColumn(Occasion::getName).setHeader("name");
-    }
-
-    private void selectOccasionFromGrid(HasValue.ValueChangeEvent event){
-        event.getValue();
     }
 
     public void addExpense(String name){
@@ -173,22 +109,5 @@ public class Home extends AppLayout {
             dialog.open();
         });
         return button;
-    }
-    public void addOccasion(String name){
-        Occasion occasion = new Occasion();
-        occasion.setName(name);
-        occasionsList.add(occasion);
-        occasionRepo.save(occasion);
-    }
-    public void deleteOccasion(Long id){
-
-        Iterator<Occasion> iter = occasionsList.iterator();
-        while(iter.hasNext()){
-            Occasion o = iter.next();
-            if (o.getId() == id){
-                iter.remove();
-            }
-        }
-        occasionRepo.deleteById(id);
     }
 }
